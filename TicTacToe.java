@@ -1,148 +1,174 @@
-import java.util.*;
+import java.util.Random;
+import java.util.Scanner;
 
 public class TicTacToe {
 
-    static ArrayList<Integer> playerPositions = new ArrayList<Integer>();
-    static ArrayList<Integer> cpuPositions = new ArrayList<Integer>();
-
     public static void main(String[] args) {
-        char[][] gameBoard = {{' ', '|', ' ', '|', ' '},
-                {'-', '+', '-', '+', '-'},
-                {' ', '|', ' ', '|', ' '},
-                {'-', '+', '-', '+', '-'},
-                {' ', '|', ' ', '|', ' '}};
 
-        System.out.println("Enter a number from 1-9 ");
-        showGameBoard(gameBoard);
+        Scanner scanner = new Scanner(System.in);
+
+        char[][] board = {{' ', ' ', ' '},
+                {' ', ' ', ' '},
+                {' ', ' ', ' '}};
+
+        printBoard(board);
 
         while (true) {
-            Scanner scan = new Scanner(System.in);
-            System.out.println("enter 1-9");
-            int playerPos = scan.nextInt();
-            while(playerPositions.contains(playerPos) || cpuPositions.contains(playerPositions))
-            {
-                System.out.println("Position taken try another one");
-                playerPos = scan.nextInt();
-            }
-            placePiece(gameBoard, playerPos, "player");
-            String result = checkWinner();
-            if(result.length() > 0) {
-                System.out.println(result);
+            playerTurn(board, scanner);
+            if (isGameFinished(board)) {
                 break;
             }
+            printBoard(board);
 
-            Random random = new Random();
-            int cpuPos = random.nextInt(9) + 1;
-            while(playerPositions.contains(cpuPos) || cpuPositions.contains(cpuPos))
-            {
-                System.out.println("CPU finding a new position");
-                cpuPos = random.nextInt(9) + 1;
-            }
-            placePiece(gameBoard, cpuPos, "cpu");
-
-            showGameBoard(gameBoard);
-            result = checkWinner();
-            if(result.length() > 0) {
-                System.out.println(result);
+            computerTurn(board);
+            if (isGameFinished(board)) {
                 break;
             }
+            printBoard(board);
+        }
+        scanner.close();
+    }
+
+
+    private static boolean isGameFinished(char[][] board) {
+
+        if (hasContestantWon(board, 'X')) {
+            printBoard(board);
+            System.out.println("Player wins!");
+            return true;
+        }
+
+        if (hasContestantWon(board, 'O')) {
+            printBoard(board);
+            System.out.println("Computer wins!");
+            return true;
+        }
+
+        for (int i = 0; i < board.length; i++) {
+            for (int j = 0; j < board[i].length; j++) {
+                if (board[i][j] == ' ') {
+                    return false;
+                }
+            }
+        }
+        printBoard(board);
+        System.out.println("The game ended in a tie!");
+        return true;
+    }
+
+
+    private static boolean hasContestantWon(char[][] board, char symbol) {
+        if ((board[0][0] == symbol && board[0][1] == symbol && board[0][2] == symbol) ||
+                (board[1][0] == symbol && board[1][1] == symbol && board[1][2] == symbol) ||
+                (board[2][0] == symbol && board[2][1] == symbol && board[2][2] == symbol) ||
+
+                (board[0][0] == symbol && board[1][0] == symbol && board[2][0] == symbol) ||
+                (board[0][1] == symbol && board[1][1] == symbol && board[2][1] == symbol) ||
+                (board[0][2] == symbol && board[1][2] == symbol && board[2][2] == symbol) ||
+
+                (board[0][0] == symbol && board[1][1] == symbol && board[2][2] == symbol) ||
+                (board[0][2] == symbol && board[1][1] == symbol && board[2][0] == symbol)) {
+            return true;
+        }
+        return false;
+    }
+
+
+    private static void computerTurn(char[][] board) {
+        Random rand = new Random();
+        int computerMove;
+        while (true) {
+            computerMove = rand.nextInt(9) + 1;
+            if (isValidMove(board, Integer.toString(computerMove))) {
+                break;
+            }
+        }
+        System.out.println("Computer chose " + computerMove);
+        placeMove(board, Integer.toString(computerMove), 'O');
+    }
+
+
+    private static boolean isValidMove(char[][] board, String position) {
+        switch (position) {
+            case "1":
+                return (board[0][0] == ' ');
+            case "2":
+                return (board[0][1] == ' ');
+            case "3":
+                return (board[0][2] == ' ');
+            case "4":
+                return (board[1][0] == ' ');
+            case "5":
+                return (board[1][1] == ' ');
+            case "6":
+                return (board[1][2] == ' ');
+            case "7":
+                return (board[2][0] == ' ');
+            case "8":
+                return (board[2][1] == ' ');
+            case "9":
+                return (board[2][2] == ' ');
+            default:
+                return false;
         }
     }
 
-    public static void showGameBoard(char[][] gameBoard) {
-        for (char[] row : gameBoard) {
-            for (char c : row) {
-                System.out.print(c);
+    private static void playerTurn(char[][] board, Scanner scanner) {
+        String userInput;
+        while (true) {
+            System.out.println("Where would you like to play? (1-9)");
+            userInput = scanner.nextLine();
+            if (isValidMove(board, userInput)) {
+                break;
+            } else {
+                System.out.println(userInput + " is not a valid move.");
             }
-            System.out.println();
         }
-//        for (char i = 0; i < gameBoard.length; i++) {
-//            for (char j = 0; j < gameBoard.length; j++) {
-//                System.out.print(gameBoard[i][j]);
-//            }
-//            System.out.println();
-//        }
+        placeMove(board, userInput, 'X');
     }
 
-    public static void placePiece(char[][] gameBoard, int pos, String user) {
-        char symbol = ' ';
-        if (user.equals("player")) {
-            symbol = 'X';
-            playerPositions.add(pos);
-        } else if (user.equals("cpu")) {
-            symbol = 'O';
-            cpuPositions.add(pos);
-        }
 
-        switch (pos) {
-            case 1:
-                gameBoard[0][0] = symbol;
+    private static void placeMove(char[][] board, String position, char symbol) {
+        switch (position) {
+            case "1":
+                board[0][0] = symbol;
                 break;
-            case 2:
-                gameBoard[0][2] = symbol;
+            case "2":
+                board[0][1] = symbol;
                 break;
-            case 3:
-                gameBoard[0][4] = symbol;
+            case "3":
+                board[0][2] = symbol;
                 break;
-            case 4:
-                gameBoard[2][0] = symbol;
+            case "4":
+                board[1][0] = symbol;
                 break;
-            case 5:
-                gameBoard[2][2] = symbol;
+            case "5":
+                board[1][1] = symbol;
                 break;
-            case 6:
-                gameBoard[2][4] = symbol;
+            case "6":
+                board[1][2] = symbol;
                 break;
-            case 7:
-                gameBoard[4][0] = symbol;
+            case "7":
+                board[2][0] = symbol;
                 break;
-            case 8:
-                gameBoard[4][2] = symbol;
+            case "8":
+                board[2][1] = symbol;
                 break;
-            case 9:
-                gameBoard[4][4] = symbol;
+            case "9":
+                board[2][2] = symbol;
                 break;
-
+            default:
+                System.out.println(":(");
         }
     }
 
-    public static String checkWinner()
-    {
-        List topRow = Arrays.asList(1, 2, 3);
-        List midRow = Arrays.asList(4, 5, 6);
-        List bottomRow = Arrays.asList(7, 8, 9);
-        List leftColumn = Arrays.asList(1, 4, 7);
-        List midColumn = Arrays.asList(2, 5, 8);
-        List rightColumn = Arrays.asList(3, 6, 9);
-        List diagonalL = Arrays.asList(1, 5, 9);
-        List diagonalR = Arrays.asList(3, 5, 7);
 
-        List<List> winning = new ArrayList<List>();
-        winning.add(topRow);
-        winning.add(midRow);
-        winning.add(bottomRow);
-        winning.add(leftColumn);
-        winning.add(midColumn);
-        winning.add(rightColumn);
-        winning.add(diagonalL);
-        winning.add(diagonalR);
-
-        for(List l : winning)
-        {
-            if (playerPositions.containsAll(l))
-            {
-                return "congrats";
-            }
-            else if(cpuPositions.containsAll(l))
-            {
-                return "cpu wins";
-            }
-            else if(playerPositions.size() + cpuPositions.size() == 9)
-            {
-                return "Cat";
-            }
-        }
-        return "";
+    private static void printBoard(char[][] board) {
+        System.out.println(board[0][0] + "|" + board[0][1] + "|" + board[0][2]);
+        System.out.println("-+-+-");
+        System.out.println(board[1][0] + "|" + board[1][1] + "|" + board[1][2]);
+        System.out.println("-+-+-");
+        System.out.println(board[2][0] + "|" + board[2][1] + "|" + board[2][2]);
     }
+
 }
-
